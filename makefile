@@ -1,19 +1,21 @@
-CC = clang++
+CC = clang
 SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
-SRC = $(SRC_DIR)/main.cpp
+SRC = $(SRC_DIR)/main.c
 OBJ = $(OBJ_DIR)/main.o
 OUT = $(BIN_DIR)/pathtracer.exe
+CFLAGS = 
+RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 .PHONY: all
 all: $(OUT)
 
 $(OUT): $(OBJ) | $(BIN_DIR)
-	$(CC) $(OBJ) -o $@
+	$(CC) $(OBJ) -o $@ $(CXXFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CC) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) -c $< -o $@ $(CXXFLAGS)
 
 $(BIN_DIR):
 	if not exist $@ mkdir $@
@@ -28,8 +30,7 @@ clean:
 
 .PHONY: run
 run: all
-	$(OUT)
+	$(OUT) $(RUN_ARGS)
 
-.PHONY: out
-out: all
-	@$(OUT)
+%:
+	@:
