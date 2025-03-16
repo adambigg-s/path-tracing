@@ -12,12 +12,14 @@ class Sphere : public Hittable {
     Sphere(const Vec3 &center, float radius)
         : center(center), radius(std::fmax(0, radius)) {}
 
-    bool hit(const Ray& ray, float ray_time_min, float ray_time_max, HitRecord& record) const override {
+    bool hit(const Ray &ray, Interval ray_time,
+             HitRecord &record) const override {
         Vec3 oc = center - ray.origin;
-        auto a = ray.direction.inner_product(ray.direction);
-        auto h = ray.direction.inner_product(oc);
-        auto c = oc.inner_product(oc) - radius * radius;
-        auto discrim = h * h - a * c;
+        auto direction_squared = ray.direction.inner_product(ray.direction);
+        auto correlation = ray.direction.inner_product(oc);
+        auto difference = oc.inner_product(oc) - radius * radius;
+        auto discrim =
+            correlation * correlation - direction_squared * difference;
 
         if (discrim < 0) {
             return false;
@@ -25,11 +27,11 @@ class Sphere : public Hittable {
 
         auto sqrtd = sqrt(discrim);
 
-        auto root = (h - sqrtd) / a;
+        auto root = (correlation - sqrtd) / direction_squared;
 
-        if (root <= ray_time_min || ray_time_max <= root) {
-            root = (h + sqrtd) / a;
-            if (root <= ray_time_min || ray_time_max <= root) {
+        if (!ray_time.surrounds(root)) {
+            root = (correlation + sqrtd) / direction_squared;
+            if (!ray_time.surrounds(root)) {
                 return false;
             }
         }

@@ -5,7 +5,7 @@
 
 Vec3 ray_color(const Ray &ray, const Hittable &world) {
     HitRecord record;
-    if (world.hit(ray, 0, INF, record)) {
+    if (world.hit(ray, Interval(0, INF), record)) {
         return (record.normal + Vec3(1, 1, 1)) * 0.5;
     }
 
