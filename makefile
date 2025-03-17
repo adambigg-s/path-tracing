@@ -2,8 +2,8 @@ CC = clang
 SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
-SRC = $(SRC_DIR)/main.c
-OBJ = $(OBJ_DIR)/main.o
+SRC = $(wildcard $(SRC_DIR)/*.c)
+OBJ = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
 OUT = $(BIN_DIR)/pathtracer.exe
 CFLAGS = 
 RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -12,10 +12,10 @@ RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 all: $(OUT)
 
 $(OUT): $(OBJ) | $(BIN_DIR)
-	$(CC) $(OBJ) -o $@ $(CXXFLAGS)
+	$(CC) $(OBJ) -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) -c $< -o $@ $(CXXFLAGS)
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(BIN_DIR):
 	if not exist $@ mkdir $@
