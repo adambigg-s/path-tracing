@@ -29,7 +29,7 @@ clean:
 	if exist $(BIN_DIR) rmdir /s /q $(BIN_DIR)
 
 .PHONY: run
-run: all
+run: clean all
 	$(OUT) $(RUN_ARGS)
 
 %:

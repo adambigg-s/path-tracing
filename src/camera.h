@@ -1,9 +1,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "pathtracer.h"
-#include "utils.h"
 #include <float.h>
+
+#include "pathtracer.h"
+#include "vector.h"
 
 typedef struct Camera {
     float aspect_ratio;
@@ -14,6 +15,7 @@ typedef struct Camera {
     Vec3 pixel_du;
     Vec3 pixel_dv;
     int samples_per_pixel;
+    int max_recursive_depth;
 } Camera;
 
 inline Camera camera_build(int width, int height, int samples) {
@@ -42,11 +44,47 @@ inline Camera camera_build(int width, int height, int samples) {
         .pixel_du = pixel_du,
         .pixel_dv = pixel_dv,
         .samples_per_pixel = samples,
+        .max_recursive_depth = 30,
     };
     return out;
 }
 
+inline void color_write(Vec3 pixel_color, FILE *file) {
+    Interval interval = interval_build(0.000, 0.999);
+
+    float red = linear_to_gamma(pixel_color.x);
+    float green = linear_to_gamma(pixel_color.y);
+    float blue = linear_to_gamma(pixel_color.z);
+
+    int red_byte = (int)(256 * interval_clamp(&interval, red));
+    int green_byte = (int)(256 * interval_clamp(&interval, green));
+    int blue_byte = (int)(256 * interval_clamp(&interval, blue));
+
+    fprintf(file, "%d %d %d ", red_byte, green_byte, blue_byte);
+}
+
 inline Vec3 sample_square() { return vec3_build(random_float() - 0.5, random_float() - 0.5, 0); }
+
+inline Vec3 ray_color(Ray *ray, SphereList *scene, int depth) {
+    if (depth < 0) {
+        return vec3_build(0, 1, 1);
+    }
+    HitRecord record = hitrecord_new();
+    if (spherelist_hit(scene, ray, interval_build(0.001, INFIN), &record)) {
+        Ray scattered;
+        Vec3 attenuation;
+        if (material_scatter(record.material, ray, &record, &attenuation, &scattered)) {
+            return vec3_mul_component(attenuation, ray_color(&scattered, scene, depth - 1));
+        }
+        return vec3_build(0, 0, 0);
+    }
+
+    Vec3 unit_direction = vec3_normalized(ray->direction);
+    float alpha = 0.5 * (unit_direction.y + 1);
+    Vec3 term1 = vec3_mul(vec3_build(1, 1, 1), (1 - alpha));
+    Vec3 term2 = vec3_mul(vec3_build(0.5, 0.7, 1), alpha);
+    return vec3_add(term1, term2);
+}
 
 inline Ray get_ray(Camera *camera, int i, int j) {
     Vec3 pixel_center = camera->pixel_top_left;
@@ -71,7 +109,7 @@ inline void camera_render(Camera *camera, SphereList *scene, FILE *file) {
             Vec3 pixel_color = vec3_build(0, 0, 0);
             for (int sample = 0; sample < camera->samples_per_pixel; sample += 1) {
                 Ray ray = get_ray(camera, i, j);
-                Vec3 contribution = ray_color(&ray, scene);
+                Vec3 contribution = ray_color(&ray, scene, camera->max_recursive_depth);
                 pixel_color = vec3_add(pixel_color, contribution);
             }
             pixel_color = vec3_div(pixel_color, camera->samples_per_pixel);

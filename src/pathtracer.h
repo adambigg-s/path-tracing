@@ -3,10 +3,21 @@
 
 #include <stdbool.h>
 
-#include "utils.h"
 #include "vector.h"
 
-#define MAX_HITTABLES 16
+#define MAX_HITTABLES 64
+
+enum MaterialType {
+    Lambertian,
+    Metal,
+    Dielectric,
+};
+
+typedef struct Material {
+    enum MaterialType type;
+    Vec3 albedo;
+    float fuzzy;
+} Material;
 
 typedef struct Ray {
     Vec3 origin;
@@ -18,11 +29,13 @@ typedef struct HitRecord {
     Vec3 normal;
     float time;
     bool hit;
+    Material *material;
 } HitRecord;
 
 typedef struct Sphere {
     Vec3 center;
     float radius;
+    Material *material;
 } Sphere;
 
 typedef struct SphereList {
@@ -30,14 +43,15 @@ typedef struct SphereList {
     int count;
 } SphereList;
 
+bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *attenuation, Ray *scattered);
+
 Ray ray_build(Vec3 origin, Vec3 direction);
 Vec3 ray_at(Ray *ray, float time);
-Vec3 ray_color(Ray *ray, SphereList *scene);
 
 HitRecord hitrecord_new();
 void hitrecord_set_normal(HitRecord *record, Ray *ray, Vec3 outward_normal);
 
-Sphere sphere_build(Vec3 center, float radius);
+Sphere sphere_build(Vec3 center, float radius, Material *material);
 bool sphere_hit(Sphere *sphere, Ray *ray, Interval ray_time, HitRecord *recrod);
 
 SphereList spherelist_new();

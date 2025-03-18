@@ -1,10 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "vector.h"
 
 #define INFIN 1e30
 #define PI 3.141592653589
@@ -34,27 +33,22 @@ inline bool interval_contains(Interval *interval, float value) {
 }
 
 inline float interval_clamp(Interval *interval, float value) {
-    if (value < interval->min) return interval->min;
-    if (value > interval->max) return interval->max;
+    if (value < interval->min)
+        return interval->min;
+    if (value > interval->max)
+        return interval->max;
     return value;
 }
 
-inline void color_write(Vec3 pixel_color, FILE *file) {
-    Interval interval = interval_build(0.000, 0.999);
-    
-    int red = (int)(256 * interval_clamp(&interval, pixel_color.x));
-    int green = (int)(256 * interval_clamp(&interval, pixel_color.y));
-    int blue = (int)(256 * interval_clamp(&interval, pixel_color.z));
-    
-    fprintf(file, "%d %d %d ", red, green, blue);
+inline float linear_to_gamma(float value) {
+    if (value > 0) {
+        return sqrt(value);
+    }
+    return 0;
 }
 
-inline float random_float() {
-    return rand() / (RAND_MAX + 1.);
-}
+inline float random_float() { return rand() / (RAND_MAX + 1.); }
 
-inline float random_range(float min, float max) {
-    return min + (max - min) * random_float();
-}
+inline float random_range(float min, float max) { return min + (max - min) * random_float(); }
 
 #endif

@@ -1,44 +1,35 @@
 #include <stdbool.h>
 
 #include "pathtracer.h"
-#include "utils.h"
+#include "vector.h"
 
-Ray ray_build(Vec3 origin, Vec3 direction) {
-    Ray ray = {.origin = origin, .direction = direction};
-    return ray;
-}
+bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *attenuation, Ray *scattered) {
+    if (material->type == Lambertian) {
+        Vec3 scatter_direction = vec3_add(record->normal, vec3_random_unit_vector());
+        if (vec3_near_zero(&scatter_direction)) {
+            scatter_direction = record->normal;
+        }
+        *scattered = ray_build(record->point, scatter_direction);
+        *attenuation = material->albedo;
 
-Vec3 ray_at(Ray *ray, float time) {
-    Vec3 delta = vec3_mul(ray->direction, time);
-    return vec3_add(ray->origin, delta);
-}
+        return true;
+    }
+    if (material->type == Metal) {
+        Vec3 fuzz_factor = vec3_mul(vec3_random_unit_vector(), material->fuzzy);
+        Vec3 reflected = vec3_reflect(&ray_in->direction, &record->normal);
+        reflected = vec3_normalized(reflected);
+        reflected = vec3_add(reflected, fuzz_factor);
+        *scattered = ray_build(record->point, reflected);
+        *attenuation = material->albedo;
 
-Vec3 ray_color(Ray *ray, SphereList *scene) {
-    HitRecord record = hitrecord_new();
-    if (spherelist_hit(scene, ray, interval_build(0, INFIN), &record)) {
-        Vec3 normal = record.normal;
-        return vec3_mul(vec3_build(normal.x + 1, normal.y + 1, normal.z + 1), 0.5);
+        return (vec3_inner_product(scattered->direction, record->normal) > 0);
     }
 
-    Vec3 unit_direction = vec3_normalized(ray->direction);
-    float alpha = 0.5 * (unit_direction.y + 1);
-    Vec3 t1 = vec3_mul(vec3_build(1, 1, 1), (1 - alpha));
-    Vec3 t2 = vec3_mul(vec3_build(0.5, 0.7, 1), alpha);
-    return vec3_add(t1, t2);
+    return false;
 }
 
-HitRecord hitrecord_new() {
-    HitRecord out = {.hit = false};
-    return out;
-}
-
-void hitrecord_set_normal(HitRecord *record, Ray *ray, Vec3 outward_normal) {
-    bool front_face = vec3_inner_product(ray->direction, outward_normal) < 0;
-    record->normal = front_face ? outward_normal : vec3_neg(outward_normal);
-}
-
-Sphere sphere_build(Vec3 center, float radius) {
-    Sphere out = {.center = center, .radius = radius};
+Sphere sphere_build(Vec3 center, float radius, Material *material) {
+    Sphere out = {.center = center, .radius = radius, .material = material};
     return out;
 }
 
@@ -56,7 +47,7 @@ bool sphere_hit(Sphere *sphere, Ray *ray, Interval ray_time, HitRecord *record) 
     float square_root = sqrt(discriminant);
     float root = (eta - square_root) / alpha;
     if (!interval_contains(&ray_time, root)) {
-        root = (-gamma + square_root) / alpha;
+        root = (eta + square_root) / alpha;
         if (!interval_contains(&ray_time, root)) {
             return false;
         }
@@ -67,6 +58,8 @@ bool sphere_hit(Sphere *sphere, Ray *ray, Interval ray_time, HitRecord *record) 
     Vec3 outward_normal = vec3_div(vec3_sub(record->point, sphere->center), sphere->radius);
     hitrecord_set_normal(record, ray, outward_normal);
     record->hit = true;
+    record->material = sphere->material;
+
     return true;
 }
 
