@@ -82,6 +82,17 @@ inline Vec3 vec3_reflect(Vec3 *vec, Vec3 *normal) {
     return vec3_sub(*vec, term);
 }
 
+inline Vec3 vec3_refract(Vec3 *vec, Vec3 *normal, float ratio) {
+    float cos_theta = fmin(1.0, vec3_inner_product(vec3_neg(*vec), *normal));
+
+    Vec3 perp = vec3_mul(vec3_add(*vec, vec3_mul(*normal, cos_theta)), ratio);
+
+    float parallel_scale = -sqrt(1 - vec3_inner_product(perp, perp));
+    Vec3 parallel = vec3_mul(*normal, parallel_scale);
+
+    return vec3_add(perp, parallel);
+}
+
 inline Vec3 vec3_random() {
     Vec3 vec = {
         .x = random_float(),

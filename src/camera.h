@@ -4,12 +4,14 @@
 #include <float.h>
 
 #include "pathtracer.h"
+#include "utils.h"
 #include "vector.h"
 
 typedef struct Camera {
     float aspect_ratio;
     int width;
     int height;
+    float fov;
     Vec3 center;
     Vec3 pixel_top_left;
     Vec3 pixel_du;
@@ -19,19 +21,31 @@ typedef struct Camera {
 } Camera;
 
 inline Camera camera_build(int width, int height, int samples) {
+    float fov = 70;
+    Vec3 camera_center = vec3_build(0, 0.1, 1);
+    Vec3 camera_lookat = vec3_build(0, 0, -1);
+    Vec3 world_up = vec3_build(0, 1, 0);
+
     float aspect_ratio = (float)width / (float)height;
-    float focal_length = 1;
-    float viewport_height = 2;
+    float focal_length = vec3_length(vec3_sub(camera_center, camera_lookat));
+    float theta = deg_to_rad(fov);
+    float height_modifier = tan(theta / 2);
+    float viewport_height = 2 * height_modifier * focal_length;
     float viewport_width = viewport_height * aspect_ratio;
-    Vec3 viewport_u = vec3_build(viewport_width, 0, 0);
-    Vec3 viewport_v = vec3_build(0, -viewport_height, 0);
-    Vec3 camera_center = vec3_build(0, 0, 0);
+
+    Vec3 w = vec3_normalized(vec3_sub(camera_center, camera_lookat));
+    Vec3 u = vec3_normalized(vec3_cross_product(world_up, w));
+    Vec3 v = vec3_cross_product(w, u);
+
+    Vec3 viewport_u = vec3_mul(u, viewport_width);
+    Vec3 viewport_v = vec3_mul(vec3_neg(v), viewport_height);
 
     Vec3 pixel_du = vec3_div(viewport_u, width);
     Vec3 pixel_dv = vec3_div(viewport_v, height);
 
     Vec3 viewport_top_left =
-        vec3_sub(vec3_sub(vec3_sub(camera_center, vec3_build(0, 0, focal_length)), vec3_div(viewport_u, 2)),
+        vec3_sub(vec3_sub(vec3_sub(camera_center, vec3_mul_component(vec3_build(0, 0, focal_length), w)),
+                     vec3_div(viewport_u, 2)),
             vec3_div(viewport_v, 2));
     Vec3 pixel_top_left = vec3_add(viewport_top_left, vec3_mul(vec3_add(pixel_du, pixel_dv), 0.5));
 
@@ -39,12 +53,13 @@ inline Camera camera_build(int width, int height, int samples) {
         .aspect_ratio = aspect_ratio,
         .width = width,
         .height = height,
+        .fov = fov,
         .center = camera_center,
         .pixel_top_left = pixel_top_left,
         .pixel_du = pixel_du,
         .pixel_dv = pixel_dv,
         .samples_per_pixel = samples,
-        .max_recursive_depth = 30,
+        .max_recursive_depth = 50,
     };
     return out;
 }
@@ -82,7 +97,7 @@ inline Vec3 ray_color(Ray *ray, SphereList *scene, int depth) {
     Vec3 unit_direction = vec3_normalized(ray->direction);
     float alpha = 0.5 * (unit_direction.y + 1);
     Vec3 term1 = vec3_mul(vec3_build(1, 1, 1), (1 - alpha));
-    Vec3 term2 = vec3_mul(vec3_build(0.5, 0.7, 1), alpha);
+    Vec3 term2 = vec3_mul(vec3_build(0.4, 0.6, 0.9), alpha);
     return vec3_add(term1, term2);
 }
 
@@ -103,7 +118,7 @@ inline Ray get_ray(Camera *camera, int i, int j) {
 
 inline void camera_render(Camera *camera, SphereList *scene, FILE *file) {
     fprintf(file, "P3\n%d %d\n255\n", camera->width, camera->height);
-    int printerval = camera->width * camera->height / 10000;
+    int printerval = camera->height / 50;
     for (int j = 0; j < camera->height; j += 1) {
         for (int i = 0; i < camera->width; i += 1) {
             Vec3 pixel_color = vec3_build(0, 0, 0);
@@ -117,7 +132,7 @@ inline void camera_render(Camera *camera, SphereList *scene, FILE *file) {
         }
         fprintf(file, "\n");
         if (j % printerval == 0) {
-            printf("scanlines progress: %.2f\n", (float)j / camera->height * 100);
+            printf("progress: %.2f\n", (float)j / camera->height * 100);
         }
     }
 }

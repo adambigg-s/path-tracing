@@ -5,7 +5,7 @@
 
 #include "vector.h"
 
-#define MAX_HITTABLES 64
+#define MAX_HITTABLES 16
 
 enum MaterialType {
     Lambertian,
@@ -17,6 +17,7 @@ typedef struct Material {
     enum MaterialType type;
     Vec3 albedo;
     float fuzzy;
+    float refraction_index;
 } Material;
 
 typedef struct Ray {
@@ -29,6 +30,7 @@ typedef struct HitRecord {
     Vec3 normal;
     float time;
     bool hit;
+    bool front_face;
     Material *material;
 } HitRecord;
 

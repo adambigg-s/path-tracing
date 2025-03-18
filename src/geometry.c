@@ -1,7 +1,15 @@
 #include <stdbool.h>
 
 #include "pathtracer.h"
+#include "utils.h"
 #include "vector.h"
+
+float material_reflectance(float cosine, float refraction_index) {
+    float r0 = (1 - refraction_index) / (1 + refraction_index);
+    r0 = r0 * r0;
+
+    return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
 
 bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *attenuation, Ray *scattered) {
     if (material->type == Lambertian) {
@@ -13,8 +21,7 @@ bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *
         *attenuation = material->albedo;
 
         return true;
-    }
-    if (material->type == Metal) {
+    } else if (material->type == Metal) {
         Vec3 fuzz_factor = vec3_mul(vec3_random_unit_vector(), material->fuzzy);
         Vec3 reflected = vec3_reflect(&ray_in->direction, &record->normal);
         reflected = vec3_normalized(reflected);
@@ -23,6 +30,26 @@ bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *
         *attenuation = material->albedo;
 
         return (vec3_inner_product(scattered->direction, record->normal) > 0);
+    } else if (material->type == Dielectric) {
+        float refraction_index =
+            record->front_face ? (1. / material->refraction_index) : material->refraction_index;
+
+        Vec3 unit_direction = vec3_normalized(ray_in->direction);
+        float cos_theta = fmin(vec3_inner_product(vec3_neg(unit_direction), record->normal), 1);
+        float sin_theta = sqrt(1 - cos_theta * cos_theta);
+
+        Vec3 direction;
+        if ((refraction_index * sin_theta > 1) ||
+            (material_reflectance(cos_theta, refraction_index) > random_float())) {
+            direction = vec3_reflect(&unit_direction, &record->normal);
+        } else {
+            direction = vec3_refract(&unit_direction, &record->normal, refraction_index);
+        }
+
+        *scattered = ray_build(record->point, direction);
+        *attenuation = vec3_build(1, 1, 1);
+
+        return true;
     }
 
     return false;

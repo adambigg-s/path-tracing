@@ -11,11 +11,11 @@ Vec3 ray_at(Ray *ray, float time) {
 }
 
 HitRecord hitrecord_new() {
-    HitRecord out = {.hit = false};
+    HitRecord out = {.hit = false, .front_face = false, .time = 0};
     return out;
 }
 
 void hitrecord_set_normal(HitRecord *record, Ray *ray, Vec3 outward_normal) {
-    bool front_face = vec3_inner_product(ray->direction, outward_normal) < 0;
-    record->normal = front_face ? outward_normal : vec3_neg(outward_normal);
+    record->front_face = vec3_inner_product(ray->direction, outward_normal) < 0;
+    record->normal = record->front_face ? outward_normal : vec3_neg(outward_normal);
 }

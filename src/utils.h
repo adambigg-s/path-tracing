@@ -47,6 +47,8 @@ inline float linear_to_gamma(float value) {
     return 0;
 }
 
+inline float deg_to_rad(float value) { return value * PI / 180; }
+
 inline float random_float() { return rand() / (RAND_MAX + 1.); }
 
 inline float random_range(float min, float max) { return min + (max - min) * random_float(); }
