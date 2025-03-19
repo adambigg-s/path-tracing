@@ -5,10 +5,10 @@
 #include "vector.h"
 
 float material_reflectance(float cosine, float refraction_index) {
-    float r0 = (1 - refraction_index) / (1 + refraction_index);
-    r0 = r0 * r0;
+    float ref = (1 - refraction_index) / (1 + refraction_index);
+    ref = ref * ref;
 
-    return r0 + (1 - r0) * pow((1 - cosine), 5);
+    return ref + (1 - ref) * pow((1 - cosine), 5);
 }
 
 bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *attenuation, Ray *scattered) {
@@ -50,6 +50,10 @@ bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *
         *attenuation = vec3_build(1, 1, 1);
 
         return true;
+    } else if (material->type == Source) {
+        *attenuation = vec3_mul(material->albedo, material->source_strength);
+
+        return false;
     }
 
     return false;

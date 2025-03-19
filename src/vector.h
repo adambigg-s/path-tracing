@@ -65,6 +65,11 @@ inline float vec3_length(Vec3 target) {
     return out;
 }
 
+inline Vec3 vec3_power(Vec3 target, float power) {
+    Vec3 out = {.x = powf(target.x, power), .y = powf(target.y, power), .z = powf(target.z, power)};
+    return out;
+}
+
 inline Vec3 vec3_normalized(Vec3 target) {
     float length = vec3_length(target);
     return vec3_div(target, length);

@@ -91,13 +91,13 @@ inline Vec3 ray_color(Ray *ray, SphereList *scene, int depth) {
         if (material_scatter(record.material, ray, &record, &attenuation, &scattered)) {
             return vec3_mul_component(attenuation, ray_color(&scattered, scene, depth - 1));
         }
-        return vec3_build(0, 0, 0);
+        return attenuation;
     }
 
     Vec3 unit_direction = vec3_normalized(ray->direction);
     float alpha = 0.5 * (unit_direction.y + 1);
-    Vec3 term1 = vec3_mul(vec3_build(1, 1, 1), (1 - alpha));
-    Vec3 term2 = vec3_mul(vec3_build(0.4, 0.6, 0.9), alpha);
+    Vec3 term1 = vec3_mul(vec3_build(0.3, 0.3, 0.3), (1 - alpha));
+    Vec3 term2 = vec3_mul(vec3_build(0.1, 0.2, 0.5), alpha);
     return vec3_add(term1, term2);
 }
 

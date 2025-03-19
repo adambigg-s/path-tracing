@@ -5,12 +5,13 @@
 
 #include "vector.h"
 
-#define MAX_HITTABLES 16
+#define MAX_HITTABLES 32
 
 enum MaterialType {
     Lambertian,
     Metal,
     Dielectric,
+    Source,
 };
 
 typedef struct Material {
@@ -18,6 +19,7 @@ typedef struct Material {
     Vec3 albedo;
     float fuzzy;
     float refraction_index;
+    float source_strength;
 } Material;
 
 typedef struct Ray {
