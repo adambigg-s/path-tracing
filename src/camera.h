@@ -84,9 +84,10 @@ inline Camera camera_build_default(int width, int height, int samples) {
         .height = height,
         .samples = samples,
         .fov = 70,
-        .center = vec3_build(0, 0, 1),
+        .center = vec3_build(0, 0.1, 1),
         .lookat = vec3_build(0, 0, -1),
         .up = vec3_build(0, 1, 0),
+        .max_depth = 150,
     };
     return camera_build(params);
 }

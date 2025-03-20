@@ -12,6 +12,7 @@ enum MaterialType {
     Metal,
     Dielectric,
     Source,
+    SemiVolumetric,
 };
 
 typedef struct Material {
