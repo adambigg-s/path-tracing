@@ -42,7 +42,8 @@ inline Vec3 vec3_mul_component(Vec3 u, Vec3 v) {
 }
 
 inline Vec3 vec3_div(Vec3 target, float scalar) {
-    Vec3 vec = {.x = target.x / scalar, .y = target.y / scalar, .z = target.z / scalar};
+    float inv = 1 / scalar;
+    Vec3 vec = {.x = target.x * inv, .y = target.y * inv, .z = target.z * inv};
     return vec;
 }
 
@@ -76,9 +77,11 @@ inline Vec3 vec3_normalized(Vec3 target) {
 }
 
 inline bool vec3_near_zero(Vec3 *target) {
-    float near = 1e-8;
-    return (target->x < near) && (target->y < near) && (target->z < near);
+    float near = 0.01;
+    return (fabsf(target->x) < near) && (fabsf(target->y) < near) && (fabsf(target->z) < near);
 }
+
+inline bool vec3_nan(Vec3 *target) { return isnan(target->x) && isnan(target->y) && isnan(target->z); }
 
 inline Vec3 vec3_reflect(Vec3 *vec, Vec3 *normal) {
     float dot = 2 * vec3_inner_product(*vec, *normal);
@@ -91,8 +94,10 @@ inline Vec3 vec3_refract(Vec3 *vec, Vec3 *normal, float ratio) {
     float cos_theta = fmin(1.0, vec3_inner_product(vec3_neg(*vec), *normal));
 
     Vec3 perp = vec3_mul(vec3_add(*vec, vec3_mul(*normal, cos_theta)), ratio);
+    float perp_squared = vec3_inner_product(perp, perp);
 
-    float parallel_scale = -sqrt(1 - vec3_inner_product(perp, perp));
+    float discrim = 1 - perp_squared;
+    float parallel_scale = -sqrt(fmaxf(0.001, discrim));
     Vec3 parallel = vec3_mul(*normal, parallel_scale);
 
     return vec3_add(perp, parallel);
@@ -120,7 +125,7 @@ inline Vec3 vec3_random_unit_vector() {
     while (true) {
         Vec3 candidate = vec3_random_range(-1, 1);
         float squared_length = vec3_inner_product(candidate, candidate);
-        if (1e-30 < squared_length && squared_length <= 1) {
+        if (0.001 < squared_length) {
             return vec3_div(candidate, sqrt(squared_length));
         }
     }

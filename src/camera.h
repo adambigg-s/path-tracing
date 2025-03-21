@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include <float.h>
+#include <omp.h>
 
 #include "pathtracer.h"
 #include "utils.h"
@@ -99,9 +100,9 @@ inline void color_write(Vec3 pixel_color, FILE *file) {
     float green = linear_to_gamma(pixel_color.y);
     float blue = linear_to_gamma(pixel_color.z);
 
-    int red_byte = (int)(256 * interval_clamp(&interval, red));
-    int green_byte = (int)(256 * interval_clamp(&interval, green));
-    int blue_byte = (int)(256 * interval_clamp(&interval, blue));
+    int red_byte = (int)(255 * interval_clamp(&interval, red));
+    int green_byte = (int)(255 * interval_clamp(&interval, green));
+    int blue_byte = (int)(255 * interval_clamp(&interval, blue));
 
     fprintf(file, "%d %d %d ", red_byte, green_byte, blue_byte);
 }
@@ -113,7 +114,7 @@ inline Vec3 ray_color(Ray *ray, SphereList *scene, int depth) {
         return vec3_build(0, 1, 1);
     }
     HitRecord record = hitrecord_new();
-    if (spherelist_hit(scene, ray, interval_build(0.001, INFIN), &record)) {
+    if (spherelist_hit(scene, ray, interval_build(0.01, INFIN), &record)) {
         Ray scattered;
         Vec3 attenuation;
         if (material_scatter(record.material, ray, &record, &attenuation, &scattered)) {
@@ -124,7 +125,7 @@ inline Vec3 ray_color(Ray *ray, SphereList *scene, int depth) {
 
     Vec3 unit_direction = vec3_normalized(ray->direction);
     float alpha = 0.5 * (unit_direction.y + 1);
-    Vec3 term1 = vec3_mul(vec3_build(0.3, 0.3, 0.3), (1 - alpha));
+    Vec3 term1 = vec3_mul(vec3_build(0.4, 0.4, 0.4), (1 - alpha));
     Vec3 term2 = vec3_mul(vec3_build(0.1, 0.2, 0.4), alpha);
     return vec3_add(term1, term2);
 }
@@ -144,23 +145,62 @@ inline Ray get_ray(Camera *camera, int i, int j) {
     return ray_build(camera->center, ray_direction);
 }
 
+inline Vec3 calculate_pixel_color(Camera *camera, SphereList *scene, int i, int j) {
+    Vec3 pixel_color = vec3_build(0, 0, 0);
+    for (int sample = 0; sample < camera->samples_per_pixel; sample += 1) {
+        Ray ray = get_ray(camera, i, j);
+        Vec3 contribution = ray_color(&ray, scene, camera->max_recursive_depth);
+        pixel_color = vec3_add(pixel_color, contribution);
+    }
+    pixel_color = vec3_div(pixel_color, camera->samples_per_pixel);
+    return pixel_color;
+}
+
 inline void camera_render(Camera *camera, SphereList *scene, FILE *file) {
     int printerval = camera->height / 50;
+
+    Vec3 *pixel_data;
+    pixel_data = (Vec3 *)malloc(sizeof(Vec3) * camera->width * camera->height);
+    if (pixel_data == NULL) {
+        printf("error trying to allocate pixel buffer");
+        exit(33);
+    }
+
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            printf("currently using %d threads\n", omp_get_num_threads());
+        }
+#pragma omp for collapse(2) schedule(static)
+        for (int j = 0; j < camera->height; j += 1) {
+            for (int i = 0; i < camera->width; i += 1) {
+                pixel_data[j * camera->width + i] = calculate_pixel_color(camera, scene, i, j);
+            }
+            if (j % printerval == 0 && (omp_get_thread_num() % omp_get_num_threads() == 0)) {
+                printf("progress: %.2f\n", (float)j / camera->height * 100);
+            }
+        }
+    }
 
     fprintf(file, "P3\n%d %d\n255\n", camera->width, camera->height);
     for (int j = 0; j < camera->height; j += 1) {
         for (int i = 0; i < camera->width; i += 1) {
-
-            Vec3 pixel_color = vec3_build(0, 0, 0);
-            for (int sample = 0; sample < camera->samples_per_pixel; sample += 1) {
-                Ray ray = get_ray(camera, i, j);
-                Vec3 contribution = ray_color(&ray, scene, camera->max_recursive_depth);
-                pixel_color = vec3_add(pixel_color, contribution);
-            }
-            pixel_color = vec3_div(pixel_color, camera->samples_per_pixel);
-            color_write(pixel_color, file);
+            color_write(pixel_data[j * camera->width + i], file);
         }
         fprintf(file, "\n");
+    }
+
+    free(pixel_data);
+}
+
+inline void camera_render_sequential(Camera *camera, SphereList *scene, FILE *file) {
+    int printerval = camera->height / 50;
+    for (int j = 0; j < camera->height; j += 1) {
+        for (int i = 0; i < camera->width; i += 1) {
+            Vec3 pixel_color = calculate_pixel_color(camera, scene, i, j);
+            color_write(pixel_color, file);
+        }
         if (j % printerval == 0) {
             printf("progress: %.2f\n", (float)j / camera->height * 100);
         }

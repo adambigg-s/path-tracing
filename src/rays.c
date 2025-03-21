@@ -11,7 +11,7 @@ Vec3 ray_at(Ray *ray, float time) {
 }
 
 HitRecord hitrecord_new() {
-    HitRecord out = {.hit = false, .front_face = false, .time = 0};
+    HitRecord out = {.hit = false, .front_face = false, .time = 0, .normal = vec3_build(1, 1, 1)};
     return out;
 }
 

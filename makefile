@@ -5,7 +5,7 @@ BIN_DIR = bin
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC))
 OUT = $(BIN_DIR)/pathtracer.exe
-CFLAGS = -O3
+CFLAGS = -O3 -fopenmp
 RUN_ARGS = $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 .PHONY: all

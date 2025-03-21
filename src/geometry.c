@@ -54,6 +54,7 @@ bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *
         *attenuation = vec3_mul(material->albedo, material->source_strength);
 
         return false;
+    } else if (material->type == SemiVolumetric) {
     }
 
     return false;
