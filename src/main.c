@@ -5,7 +5,7 @@
 #include "vector.h"
 
 int main(int argc, char *argv[]) {
-    Camera camera = camera_build_default(2560, 1440, 5000);
+    Camera camera = camera_build_default(1920, 1080, 500);
 
     Material ground = {.type = Lambertian, .albedo = vec3_build(0.2, 0.2, 0.2)};
     Material small = {.type = Lambertian, .albedo = vec3_build(0.7, 0.1, 0.1)};
@@ -29,29 +29,29 @@ int main(int argc, char *argv[]) {
     SphereList scene = spherelist_new();
     spherelist_add(&scene, sphere_build(vec3_build(0, -300.5, -1), 300, &ground));
     spherelist_add(&scene, sphere_build(vec3_build(0.1, 0, -1.5), 0.5, &center));
-    spherelist_add(&scene, sphere_build(vec3_build(-1.0, -0.2, -0.9), 0.3, &left));
-    spherelist_add(&scene, sphere_build(vec3_build(-1.0, -0.2, -0.9), 0.15, &bubble));
-    spherelist_add(&scene, sphere_build(vec3_build(1.1, 0, -1.1), 0.5, &right));
-    spherelist_add(&scene, sphere_build(vec3_build(0.5, -0.4, -0.75), 0.1, &little));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.6, -0.4, -1.2), 0.1, &small));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.6, -0.35, -0.4), 0.15, &dark));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.55, -0.4, -1.8), 0.1, &source));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.1, -0.45, -0.5), 0.05, &tiny));
-    spherelist_add(&scene, sphere_build(vec3_build(0.4, -0.47, -0.12), 0.03, &tiny));
-    spherelist_add(&scene, sphere_build(vec3_build(-1.5, 0, -3), 0.5, &back));
-    spherelist_add(&scene, sphere_build(vec3_build(-4, 1, -4), 1.5, &big_outer));
-    spherelist_add(&scene, sphere_build(vec3_build(-4, 1, -4), 0.75, &big_inner));
-    spherelist_add(&scene, sphere_build(vec3_build(0.7, -0.3, 0), 0.2, &mirror));
-    spherelist_add(&scene, sphere_build(vec3_build(0.1, 0, 2), 0.5, &center));
-    spherelist_add(&scene, sphere_build(vec3_build(-1, 0, 1.5), 0.5, &right));
-    spherelist_add(&scene, sphere_build(vec3_build(-4, 0, 0), 0.5, &little));
-    spherelist_add(&scene, sphere_build(vec3_build(10, 8, -1), 5, &source));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.2, -0.4, 0.1), 0.1, &dim_light));
-    spherelist_add(&scene, sphere_build(vec3_build(0.1, -0.45, -0.05), 0.05, &big_outer));
-    spherelist_add(&scene, sphere_build(vec3_build(-0.7, -0.4, -0.05), 0.1, &big_outer));
-    spherelist_add(&scene, sphere_build(vec3_build(2.5, -0.2, -1.5), 0.3, &red_light));
-    spherelist_add(&scene, sphere_build(vec3_build(-1.3, -0.45, -0.5), 0.05, &blue_light));
-    spherelist_add(&scene, sphere_build(vec3_build(1, -0.3, 0.8), 0.2, &light_green));
+    // spherelist_add(&scene, sphere_build(vec3_build(-1.0, -0.2, -0.9), 0.3, &left));
+    // spherelist_add(&scene, sphere_build(vec3_build(-1.0, -0.2, -0.9), 0.15, &bubble));
+    // spherelist_add(&scene, sphere_build(vec3_build(1.1, 0, -1.1), 0.5, &right));
+    // spherelist_add(&scene, sphere_build(vec3_build(0.5, -0.4, -0.75), 0.1, &little));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.6, -0.4, -1.2), 0.1, &small));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.6, -0.35, -0.4), 0.15, &dark));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.55, -0.4, -1.8), 0.1, &source));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.1, -0.45, -0.5), 0.05, &tiny));
+    // spherelist_add(&scene, sphere_build(vec3_build(0.4, -0.47, -0.12), 0.03, &tiny));
+    // spherelist_add(&scene, sphere_build(vec3_build(-1.5, 0, -3), 0.5, &back));
+    // spherelist_add(&scene, sphere_build(vec3_build(-4, 1, -4), 1.5, &big_outer));
+    // spherelist_add(&scene, sphere_build(vec3_build(-4, 1, -4), 0.75, &big_inner));
+    // spherelist_add(&scene, sphere_build(vec3_build(0.7, -0.3, 0), 0.2, &mirror));
+    // spherelist_add(&scene, sphere_build(vec3_build(0.1, 0, 2), 0.5, &center));
+    // spherelist_add(&scene, sphere_build(vec3_build(-1, 0, 1.5), 0.5, &right));
+    // spherelist_add(&scene, sphere_build(vec3_build(-4, 0, 0), 0.5, &little));
+    // spherelist_add(&scene, sphere_build(vec3_build(10, 8, -1), 5, &source));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.2, -0.4, 0.1), 0.1, &dim_light));
+    // spherelist_add(&scene, sphere_build(vec3_build(0.1, -0.45, -0.05), 0.05, &big_outer));
+    // spherelist_add(&scene, sphere_build(vec3_build(-0.7, -0.4, -0.05), 0.1, &big_outer));
+    // spherelist_add(&scene, sphere_build(vec3_build(2.5, -0.2, -1.5), 0.3, &red_light));
+    // spherelist_add(&scene, sphere_build(vec3_build(-1.3, -0.45, -0.5), 0.05, &blue_light));
+    // spherelist_add(&scene, sphere_build(vec3_build(1, -0.3, 0.8), 0.2, &light_green));
 
     char *output_file = (argc > 1) ? argv[1] : "./images/dump.ppm";
     FILE *file;
@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
 
     clock_t start_time = clock();
     camera_render(&camera, &scene, file);
+    // camera_render_sequential(&camera, &scene, file);
     clock_t end_time = clock();
     float time_spent_seconds = (float)(end_time - start_time) / CLOCKS_PER_SEC;
     float time_spent_minutes = (float)(end_time - start_time) / CLOCKS_PER_SEC / 60;

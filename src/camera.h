@@ -196,6 +196,7 @@ inline void camera_render(Camera *camera, SphereList *scene, FILE *file) {
 
 inline void camera_render_sequential(Camera *camera, SphereList *scene, FILE *file) {
     int printerval = camera->height / 50;
+    fprintf(file, "P3\n%d %d\n255\n", camera->width, camera->height);
     for (int j = 0; j < camera->height; j += 1) {
         for (int i = 0; i < camera->width; i += 1) {
             Vec3 pixel_color = calculate_pixel_color(camera, scene, i, j);

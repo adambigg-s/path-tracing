@@ -1,0 +1,3 @@
+[submodule "path-tracing-bvh"]
+	path = path-tracing-bvh
+	url = https://github.com/adambigg-s/path-tracing-bvh.git
