@@ -55,6 +55,8 @@ bool material_scatter(Material *material, Ray *ray_in, HitRecord *record, Vec3 *
 
         return false;
     } else if (material->type == SemiVolumetric) {
+
+        return false;
     }
 
     return false;
